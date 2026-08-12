@@ -30,31 +30,37 @@ critical.
 
 | Metric | Acceptable Low Score Scenario | Critical Low Score Scenario | Action Required |
 |---|---|---|---|
-| Faithfulness | | | |
-| Answer Relevance | | | |
-| Context Recall | | | |
-| Context Precision | | | |
-| Completeness | | | |
+| Faithfulness | Câu trả lời sáng tạo hoặc không có claim cần kiểm chứng | Trả lời sai hoặc bịa thông tin trong khi hỗ trợ khách hàng | Kiểm tra hallucination, evidence và prompt; tăng cường grounding |
+| Answer Relevance | Câu hỏi mở, người dùng chấp nhận có thêm diễn giải | Trả lời sai hoặc lan man, gây hiểu nhầm cho khách hàng | Sửa prompt/rubric và kiểm tra intent, độ trực tiếp của câu trả lời |
+| Context Recall | Câu hỏi đơn giản, bằng chứng cần thiết đã được truy xuất | Bỏ sót tài liệu/claim cần thiết nên không thể trả lời đầy đủ | Cải thiện query expansion, chunking và retriever |
+| Context Precision | Một số context dư thừa nhưng không làm sai câu trả lời | Nhiều context nhiễu hoặc mâu thuẫn làm model trả lời sai | Rerank, lọc context và điều chỉnh top-k |
+| Completeness | Câu hỏi chỉ yêu cầu một thông tin ngắn | Bỏ sót yêu cầu hoặc điều kiện quan trọng trong câu hỏi | Bổ sung checklist claim và test case theo từng ý của expected answer |
 
 ### Exercise 1.2 — Bias trong LLM-as-a-Judge
 
 Ba bias thường gặp:
 
-- Position bias: judge ưu tiên answer xuất hiện trước.
-- Verbosity bias: judge ưu tiên answer dài hơn.
-- Self-preference: judge ưu tiên output giống chính model đó.
+- Position bias: judge ưu tiên answer xuất hiện trước
+- Verbosity bias: judge ưu tiên answer dài hơn
+- Self-preference: judge ưu tiên output giống chính model đó
 
 **Câu 1: Thiết kế experiment phát hiện position bias với ít nhất hai conditions.**
 
 > *Câu trả lời:*
 
+Đánh giá cùng một cặp question–answers ở hai điều kiện: giữ nguyên answer A trước answer B, rồi đảo thành B trước A. Lặp lại nhiều mẫu; nếu điểm của answer thay đổi đáng kể theo vị trí thì có position bias
+
 **Câu 2: Làm thế nào giảm verbosity bias bằng rubric design?**
 
 > *Câu trả lời:*
 
+Chấm theo các tiêu chí độc lập với độ dài; quy định câu trả lời ngắn nhưng đủ ý vẫn được điểm tối đa, phạt lặp/lan man và yêu cầu nêu claim bắt buộc thay vì số từ tối thiểu
+
 **Câu 3: Tại sao cần calibrate LLM judge với human labels?**
 
 > *Câu trả lời:*
+
+Human labels làm chuẩn tham chiếu để đo agreement, phát hiện judge chấm lệch và hiệu chỉnh rubric/threshold trước khi tự động hóa trong CI/CD
 
 ### Exercise 1.3 — Evaluation trong CI/CD
 
@@ -62,13 +68,15 @@ Ba bias thường gặp:
 
 | Metric | Threshold | Lý do |
 |---|---:|---|
-| Faithfulness | | |
-| Answer Relevance | | |
-| Completeness | | |
+| Faithfulness | >= 0.80 | Giảm hallucination và bảo đảm claim bám evidence |
+| Answer Relevance | >= 0.80 | Bảo đảm trả lời đúng câu hỏi và tránh lan man |
+| Completeness | >= 0.80 | Bảo đảm không bỏ sót yêu cầu chính của khách hàng |
 
 **Câu 2: Khi nào dùng offline evaluation, online evaluation và human review?**
 
 > *Câu trả lời:*
+
+Offline evaluation dùng trước release trên golden set để regression nhanh; online evaluation dùng sau deploy trên traffic thật để theo dõi drift; human review dùng cho case rủi ro cao, case thất bại hoặc khi cần kiểm định judge tự động
 
 ---
 
